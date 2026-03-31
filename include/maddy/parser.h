@@ -22,6 +22,7 @@
 #include "maddy/orderedlistparser.h"
 #include "maddy/paragraphparser.h"
 #include "maddy/quoteparser.h"
+#include "maddy/gfmtableparser.h"
 #include "maddy/tableparser.h"
 #include "maddy/unorderedlistparser.h"
 
@@ -274,6 +275,14 @@ private:
         [this](std::string& line) { this->runLineParser(line); },
         [this](const std::string& line)
         { return this->getBlockParserForLine(line); }
+      );
+    }
+    else if ((!this->config || (this->config->enabledParsers &
+                                maddy::types::GFM_TABLE_PARSER) != 0) &&
+             maddy::GfmTableParser::IsStartingLine(line))
+    {
+      parser = std::make_shared<maddy::GfmTableParser>(
+        [this](std::string& line) { this->runLineParser(line); }, nullptr
       );
     }
     else if ((!this->config || (this->config->enabledParsers &
