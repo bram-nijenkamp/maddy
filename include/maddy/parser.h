@@ -136,6 +136,18 @@ public:
 
     for (std::string line; std::getline(markdown, line);)
     {
+      // ATX headings interrupt paragraphs (CommonMark §4.1)
+      if (currentBlockParser &&
+          dynamic_cast<maddy::ParagraphParser*>(currentBlockParser.get()) &&
+          (!this->config || (this->config->enabledParsers & maddy::types::HEADLINE_PARSER) != 0) &&
+          maddy::HeadlineParser::IsStartingLine(line))
+      {
+        std::string emptyLine = "";
+        currentBlockParser->AddLine(emptyLine);
+        result += currentBlockParser->GetResult().str();
+        currentBlockParser = nullptr;
+      }
+
       if (!currentBlockParser)
       {
         currentBlockParser = getBlockParserForLine(line);
